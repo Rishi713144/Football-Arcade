@@ -161,7 +161,9 @@ const footballers = [
       }
     ];
 
-    const quizQuestions = [
+    window.footballers = footballers;
+
+    const quizQuestionsBase = [
       {
         question: "What’s your playing style on the field?",
         options: [
@@ -225,20 +227,12 @@ const footballers = [
     let progressInterval = null;
     let timeouts = [];
     
-    // Game & Timer Variables
     let questionTimer;
     const QUESTION_TIME = 10;
     let timeLeft;
-    let minigameInterval;
-    let keeperDirection = 1;
-    let keeperPosition = 50;
-    let gameActive = false;
-    let shotTaken = false;
-    let penaltyScore = 0;
     let currentGameMode = '';
     let currentUserName = "Player";
 
-    // Keepie Uppie Variables
     let keepieScore = 0;
     let keepieBest = 0;
     let keepieBallY = 50;
@@ -246,66 +240,90 @@ const footballers = [
     let keepieGravity = 0.5; 
     let keepieGameActive = false;
     let keepieAnimation;
-
-    // --- MENU LOGIC ---
+    let minigameInterval = null;
+    let gameActive = false;
 
     function showMenu() {
-        // Reset Everything
         resetProgram(true); 
-        
-        // Hide Games
+
         document.getElementById("quizApp").style.display = "none";
-        document.getElementById("minigameContainer").style.display = "none";
         document.getElementById("keepieContainer").style.display = "none";
+        document.getElementById("planetQuizzesContainer").style.display = "none";
         document.getElementById("gameControls").style.display = "none";
-        
-        // Show Input & Menu
-        document.querySelector(".input-container").style.display = "block";
+
         document.getElementById("mainMenu").style.display = "flex";
-        
-        // Ensure buttons are enabled
+
         document.querySelectorAll("button").forEach(button => button.disabled = false);
     }
 
     function startGameMode(mode) {
-        const userNameInput = document.getElementById("userName").value.trim();
-        if (!userNameInput) {
-            alert("Please enter your name first!");
-            return;
-        }
-        currentUserName = userNameInput;
-
         currentGameMode = mode;
-        document.querySelector(".input-container").style.display = "none";
         document.getElementById("mainMenu").style.display = "none";
         document.getElementById("gameControls").style.display = "flex";
 
         if (mode === 'quiz') {
-            document.getElementById("quizApp").style.display = "block";
-            startQuiz();
-        } else if (mode === 'penalty') {
-            document.getElementById("minigameContainer").classList.add("show");
-            document.getElementById("minigameContainer").style.display = "block";
-            startPenaltyGame();
+          document.getElementById("quizApp").style.display = "block";
+          startQuiz();
         } else if (mode === 'keepie') {
-            document.getElementById("keepieContainer").style.display = "block";
-            startKeepieGame();
-        }
+          document.getElementById("keepieContainer").style.display = "block";
+          startKeepieGame();        } else if (mode === 'planetquizzes') {
+            document.getElementById("planetQuizzesContainer").style.display = "block";
+            if(window.startPlanetQuizzes) window.startPlanetQuizzes();        }
     }
 
     function resetCurrentGame() {
         if(currentGameMode === 'quiz') {
             resetProgram(true); // Silent reset
             startQuiz();
-        } else if(currentGameMode === 'penalty') {
-            document.getElementById("minigameContainer").classList.remove("show"); // fix hide
-            setTimeout(startPenaltyGame, 100); // slight delay
         } else if(currentGameMode === 'keepie') {
             startKeepieGame();
+        } else if(currentGameMode === 'planetquizzes') {
+            if(window.startPlanetQuizzes) window.startPlanetQuizzes();
         }
     }
 
-    // --- QUIZ LOGIC ---
+    function handleAppAction(target){
+      const action = target && target.getAttribute ? target.getAttribute('data-action') : null;
+      if(!action) return false;
+
+      if(action === 'start-game'){
+        startGameMode(target.getAttribute('data-mode'));
+        return true;
+      }
+
+      if(action === 'show-menu'){
+        showMenu();
+        return true;
+      }
+
+      if(action === 'reset-game'){
+        resetCurrentGame();
+        return true;
+      }
+
+      if(action === 'start-top10' && window.startTop10){
+        window.startTop10();
+        return true;
+      }
+
+      if(action === 'start-planet-quizzes' && window.startPlanetQuizzes){
+        window.startPlanetQuizzes();
+        return true;
+      }
+
+      return false;
+    }
+
+    let quizQuestions = [];
+
+    function shuffleArray(items) {
+      const copy = items.slice();
+      for (let index = copy.length - 1; index > 0; index--) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+      }
+      return copy;
+    }
 
     function startQuiz() {
       
@@ -313,6 +331,10 @@ const footballers = [
       currentFootballer = null;
       currentQuestionIndex = 0;
       userTraits = { power: 0, flair: 0, leadership: 0, teamwork: 0 };
+      quizQuestions = shuffleArray(quizQuestionsBase.map(question => ({
+        ...question,
+        options: question.options.map(option => ({ ...option }))
+      })));
       document.getElementById("quizContainer").classList.add("show");
       document.getElementById("quizContainer").style.display = "block";
       showQuestion();
@@ -323,7 +345,6 @@ const footballers = [
       const optionsContainer = document.getElementById("optionsContainer");
       const currentQuestion = quizQuestions[currentQuestionIndex];
 
-      // Start/Reset Timer
       startTimer();
       
       questionContainer.innerHTML = `<h3>${currentQuestion.question}</h3>`;
@@ -348,7 +369,6 @@ const footballers = [
             updateTimerUI();
             if (timeLeft <= 0) {
                 clearInterval(questionTimer);
-                // Time's up! Pick random trait to continue
                 const currentFromTimer = quizQuestions[currentQuestionIndex];
                 const randomOptionIndex = Math.floor(Math.random() * currentFromTimer.options.length); 
                 const randomTrait = currentFromTimer.options[randomOptionIndex].traits;
@@ -361,7 +381,6 @@ const footballers = [
         const bar = document.getElementById("timerBar");
         if(bar) {
             bar.style.width = `${(timeLeft / QUESTION_TIME) * 100}%`;
-            // Color change
             if(timeLeft <= 3) bar.style.backgroundColor = "#ff6b6b"; 
             else bar.style.backgroundColor = "#28a745";
         }
@@ -382,64 +401,6 @@ const footballers = [
       }
     }
 
-    // --- PENALTY SHOOTOUT LOGIC ---
-
-    let keeperSpeed = 1.5;
-    let winStreak = 0;
-
-    function startPenaltyGame() {
-       gameActive = true;
-       shotTaken = false;
-       keeperPosition = 50;
-       penaltyScore = 0;
-       winStreak = 0;
-       keeperSpeed = 1.5;
-       
-       document.getElementById("penaltyScore").textContent = penaltyScore;
-       // Update Scoreboard Label
-       const scoreBoard = document.getElementById("scoreBoard");
-       if(scoreBoard) scoreBoard.innerHTML = `${currentUserName}'s Score: <span id="penaltyScore">0</span>`;
-
-       document.getElementById("gameMessage").textContent = `Ready, ${currentUserName}? Tap to Shoot!`;
-       document.getElementById("gameMessage").style.color = "var(--secondary-color)";
-       
-       // Reset Ball
-       const ball = document.getElementById("ball");
-        if(ball) {
-            ball.classList.remove("ball-moving");
-            ball.style.top = "";
-            ball.style.bottom = "30px";
-            ball.style.left = "50%";
-            ball.style.transform = "translateX(-50%)";
-        }
-       
-       // Start Game Loop
-       if(minigameInterval) cancelAnimationFrame(minigameInterval);
-       activeGameLoop();
-    }
-    
-    function activeGameLoop() {
-        if(!gameActive) return;
-        
-        // Move Keeper
-        keeperPosition += keeperDirection * keeperSpeed; 
-        
-        // Erratic movement at higher scores
-        if (penaltyScore >= 5 && Math.random() < 0.02) keeperDirection *= -1;
-        
-        // Bounds
-        if (keeperPosition > 90 || keeperPosition < 10) keeperDirection *= -1;
-        
-        // Clamp
-        keeperPosition = Math.max(10, Math.min(90, keeperPosition));
-
-        const keeper = document.getElementById("goalkeeper");
-        if(keeper) keeper.style.left = keeperPosition + "%";
-        
-        minigameInterval = requestAnimationFrame(activeGameLoop);
-    }
-
-// Helper for visual effects
     function showFloatingText(container, x, y, text, color) {
         const floatEl = document.createElement("div");
         floatEl.classList.add("floating-text");
@@ -452,113 +413,22 @@ const footballers = [
         setTimeout(() => floatEl.remove(), 1000);
     }
 
-    // Improved shoot with aiming
-    function shoot(event) {
-        if (!gameActive || shotTaken) return;
-        shotTaken = true;
-        
-        const ball = document.getElementById("ball");
-        const gameArea = document.getElementById("gameArea");
-        
-        // Calculate Aim Target (0-100%)
-        let targetX = 50; 
-        
-        if (event && (event.type === 'click' || event.type === 'touchstart')) {
-            const rect = gameArea.getBoundingClientRect();
-            // Handle touch or mouse
-            const clientX = (event.touches && event.touches.length > 0) ? event.touches[0].clientX : event.clientX;
-            
-            // If valid clientX found
-            if (clientX) {
-                targetX = ((clientX - rect.left) / rect.width) * 100;
-                // Clamp to stay within reasonable bounds
-                targetX = Math.max(10, Math.min(90, targetX));
-            }
-        } else {
-          
-            targetX = 45 + Math.random() * 10;
-        }
-
-        ball.classList.add("ball-moving");
-        
-        // Animate Shot
-        ball.style.left = targetX + "%";
-        ball.style.bottom = "80%"; // Move up into goal
-        // Add spin and scale
-        const spin = (Math.random() < 0.5 ? -1 : 1) * 720;
-        ball.style.transform = `translateX(-50%) scale(0.6) rotate(${spin}deg)`; 
-        
-        // Determine result after animation
-        setTimeout(() => {
-            
-            const dist = Math.abs(keeperPosition - targetX);
-            const saved = dist < 8; // Hit box range
-            
-            if (saved) {
-                document.getElementById("gameMessage").innerHTML = "<span style='color:#ff6b6b; font-weight:bold'>SAVED!</span>";
-                showFloatingText(document.getElementById("gameArea"), targetX + "%", "40%", "SAVED!", "#ff6b6b");
-                gameActive = false; 
-                winStreak = 0;
-                cancelAnimationFrame(minigameInterval);
-            } else {
-                penaltyScore++;
-                winStreak++;
-                document.getElementById("penaltyScore").textContent = penaltyScore;
-                
-                let msg = "GOAL!";
-                let color = "var(--neon-green)";
-                
-                if (winStreak > 2) {
-                    msg = "ON FIRE!!";
-                    color = "var(--neon-pink)";
-                }
-                
-                document.getElementById("gameMessage").innerHTML = `<span style='color:${color}; font-weight:bold'>${msg}</span>`;
-                showFloatingText(document.getElementById("gameArea"), targetX + "%", "20%", msg, color);
-                
-                setTimeout(() => {
-                    ball.classList.remove("ball-moving");
-                    ball.style.top = "";
-                    ball.style.bottom = "30px";
-                    ball.style.left = "50%";
-                    ball.style.transform = "translateX(-50%) rotate(0deg)";
-                    shotTaken = false;
-                    document.getElementById("gameMessage").textContent = "Shoot again!";
-                    document.getElementById("gameMessage").style.color = "var(--text-secondary)";
-                    
-                     // Increase Difficulty
-                     if (penaltyScore % 3 === 0) keeperSpeed += 0.3;
-                     
-                }, 1000);
-            }
-        }, 600);
-    }
-
-    // --- KEEPIE UPPIE LOGIC ---
-
     function startKeepieGame() {
         keepieScore = 0;
-        document.getElementById("keepieScore").textContent = 0;
-        
-        const sb = document.getElementById("keepieScoreBoard");
-        if(sb) sb.innerHTML = `${currentUserName}'s Score: <span id="keepieScore">0</span> | Best: <span id="keepieBest">${keepieBest}</span>`;
-
-        document.getElementById("keepieMessage").textContent = `Tap anywhere to kick! Hit the Green Zone for x2 Points!`;
-        
         keepieBallY = 50;
         keepieBallVelocity = 0;
-        keepieGameActive = false; // Waits for first tap
+        keepieGameActive = false;
+        
+        document.getElementById("keepieScore").textContent = 0;
+        document.getElementById("keepieMessage").textContent = `Click/Tap the ball to start!`;
         
         const ball = document.getElementById("keepieBall");
         if (ball) {
-            // Force Reset
-            ball.style.display = 'block'; 
             ball.style.bottom = "50%";
             ball.style.left = "50%";
             ball.style.transform = "translate(-50%, 0) rotate(0deg) scale(1)";
             ball.style.opacity = "1";
-            ball.style.visibility = "visible";
-            ball.classList.remove('ball-squash');
+            ball.style.display = "block";
         }
 
         if (keepieAnimation) cancelAnimationFrame(keepieAnimation);
@@ -570,51 +440,37 @@ const footballers = [
             keepieGameActive = true;
             document.getElementById("keepieMessage").textContent = "";
         }
-        
+
         if (!keepieGameActive && keepieBallY <= 0) {
-             // Restart request handled by game loop reset usually, but if clicked after death
              resetCurrentGame();
              return;
         }
-        
+
         if (!keepieGameActive) return; 
 
         keepieBallVelocity = 12; 
-        
-        // Target Zone Logic (Target is at 20%)
+
+        const keepieBallEl = document.getElementById("keepieBall");
+
         let points = 1;
         let floatsText = "+1";
-        let floatColor = "var(--neon-green)";
-        
-        // Perfect zone: 15% to 25%
+        let floatColor = "#39FF14";
+
         if(keepieBallY >= 15 && keepieBallY <= 25) {
             points = 2;
             floatsText = "PERFECT! +2";
-            floatColor = "var(--neon-cyan)";
-            triggerGlow(document.getElementById("keepieTarget"));
+            floatColor = "#00FFFF";
         }
 
         keepieScore += points;
         document.getElementById("keepieScore").textContent = keepieScore;
         
-        const ball = document.getElementById("keepieBall");
-        
-        // Squash Effect
-        ball.style.transform = "translate(-50%, 0) scale(1.3, 0.7)"; 
-        setTimeout(() => {
-             ball.style.transform = `translate(-50%, 0) scale(1) rotate(${Math.random() * 360}deg)`;
-        }, 100);
-
-        // Floating Text
-        showFloatingText(document.getElementById("keepieArea"), "50%", (90 - keepieBallY) + "%", floatsText, floatColor);
-    }
-
-    function triggerGlow(element) {
-        if(!element) return;
-        element.style.filter = "drop-shadow(0 0 15px var(--neon-cyan)) brightness(1.5)";
-        setTimeout(() => {
-             element.style.filter = "blur(5px)";
-        }, 300);
+        if(keepieBallEl) {
+            keepieBallEl.style.transform = "translate(-50%, 0) scale(1.3, 0.7)"; 
+            setTimeout(() => {
+                 keepieBallEl.style.transform = `translate(-50%, 0) scale(1) rotate(${Math.random() * 360}deg)`;
+            }, 100);
+        }
     }
 
     function keepieLoop() {
@@ -624,36 +480,26 @@ const footballers = [
 
             const ball = document.getElementById("keepieBall");
             
-            // Floor collision (Game Over)
-            if (keepieBallY < 0) {
-                keepieBallY = 0;
-                keepieGameActive = false;
-                document.getElementById("keepieMessage").textContent = `Dropped! Game Over, ${currentUserName}.`;
-                if (keepieScore > keepieBest) {
-                    keepieBest = keepieScore;
-                    document.getElementById("keepieBest").textContent = keepieBest;
+            if(ball) {
+                if (keepieBallY < 0) {
+                    keepieBallY = 0;
+                    keepieGameActive = false;
+                    document.getElementById("keepieMessage").textContent = `Dropped! Game Over. Score: ${keepieScore}`;
+                    if (keepieScore > keepieBest) {
+                        keepieBest = keepieScore;
+                        document.getElementById("keepieBest").textContent = keepieBest;
+                    }
                 }
-            }
-            
-            // Ceiling collision (Just bounce)
-            if (keepieBallY > 90) {
-                 keepieBallVelocity = -5;
-            }
+                
+                if (keepieBallY > 90) {
+                     keepieBallVelocity = -5;
+                }
 
-            ball.style.bottom = keepieBallY + "%";
+                ball.style.bottom = keepieBallY + "%";
+            }
         }
         keepieAnimation = requestAnimationFrame(keepieLoop);
     }
-    
-    // Wire up events
-    document.addEventListener('keydown', (e) => {
-        const gameContainer = document.getElementById("minigameContainer");
-        if (e.code === 'Space' && gameContainer && gameContainer.classList.contains("show")) {
-             e.preventDefault(); 
-             shoot();
-        }
-    });
-    
     
     function showResult() {
       document.getElementById("quizContainer").classList.remove("show");
@@ -755,14 +601,12 @@ const footballers = [
         document.getElementById("progressContainer").classList.remove("show");
         resultContainer.classList.add("show");
 
-        // Animate Image
         imageElement.classList.add("show");
         
         playerNameElement.textContent = currentFootballer.name;
         playerNameElement.classList.remove("hidden-initial");
         playerNameElement.classList.add("show");
 
-        // Show Match Percentage
         const matchText = currentFootballer.matchPercentage ? ` • ${currentFootballer.matchPercentage}% Match` : "";
         playerPositionElement.textContent = `Position: ${currentFootballer.position}${matchText}`;
         playerPositionElement.classList.remove("hidden-initial");
@@ -784,11 +628,9 @@ const footballers = [
 
         isProgramStopped = true;
         
-         // Disable quiz buttons but keep game control buttons enabled
          const quizButtons = document.querySelectorAll('#quizContainer button');
          quizButtons.forEach(button => button.disabled = true);
-         
-         // Ensure main control buttons are ENABLED
+
          document.querySelectorAll('#gameControls button').forEach(button => button.disabled = false);
       };
 
@@ -809,13 +651,11 @@ const footballers = [
 
       const numQuestions = quizQuestions.length || 1;
 
-      // Calculate normalized user traits
       const uPower = userTraits.power / numQuestions;
       const uFlair = userTraits.flair / numQuestions;
       const uLead = userTraits.leadership / numQuestions;
       const uTeam = userTraits.teamwork / numQuestions;
 
-      // Calculate distances for all footballers
       const candidates = footballers.map(footballer => {
         const distance =
           Math.abs(footballer.traits.power - uPower) +
@@ -826,7 +666,6 @@ const footballers = [
         return { ...footballer, distance };
       });
 
-      // Sort by distance (ascending)
       candidates.sort((a, b) => a.distance - b.distance);
 
      
@@ -860,16 +699,19 @@ const footballers = [
       currentQuestionIndex = 0;
       userTraits = { power: 0, flair: 0, leadership: 0, teamwork: 0 };
 
-      // Stop Timers & Game
       if (questionTimer) clearInterval(questionTimer);
       if (minigameInterval) cancelAnimationFrame(minigameInterval);
-      if (keepieAnimation) cancelAnimationFrame(keepieAnimation); // Stop keepie uppie
+      minigameInterval = null;
+      if (keepieAnimation) cancelAnimationFrame(keepieAnimation);
+      keepieAnimation = null;
       gameActive = false;
       keepieGameActive = false;
-      document.getElementById("minigameContainer").classList.remove("show");
-      document.getElementById("keepieContainer").style.display = "none";
+      const minigameContainer = document.getElementById("minigameContainer");
+      if (minigameContainer) minigameContainer.classList.remove("show");
+
+      const keepieContainer = document.getElementById("keepieContainer");
+      if (keepieContainer) keepieContainer.style.display = "none";
       
-      // Reset Ball
       const ball = document.getElementById("ball");
       if(ball) {
           ball.classList.remove("ball-moving");
@@ -915,50 +757,42 @@ const footballers = [
       document.getElementById("resultContainer").classList.remove("show");
       document.getElementById("progressBar").style.width = "0%";
       document.getElementById("progressText").textContent = "Analyzing stats...";
-      // Don't clear username if just restarting game
       document.getElementById("questionText").innerHTML = "";
 
-      if(!silent) alert("Program has been reset. Please enter your name to start a new quiz.");
-    }
-
-
-
-    function handleEnter(event) {
-      if (event.key === 'Enter' || event.keyCode === 13) {
-        event.preventDefault();
-      }
+      if(!silent) alert("Program has been reset. Ready to play again!");
     }
 
     document.documentElement.setAttribute("data-theme", "dark");
     
-    // Init Game Listener
-    document.addEventListener("DOMContentLoaded", () => {
-         // Show menu by default
-         showMenu();
+        document.addEventListener("DOMContentLoaded", () => {
+          showMenu();
 
-         const gameArea = document.getElementById("gameArea");
-         if(gameArea) {
-             gameArea.addEventListener("click", (e) => {
-                 if(currentGameMode === 'penalty') shoot(e);
-             });
-             gameArea.addEventListener("touchstart", (e) => {
-                 e.preventDefault(); 
-                 if(currentGameMode === 'penalty') shoot(e);
-             });
-         }
-         
-         const keepieArea = document.getElementById("keepieArea");
-         if(keepieArea) {
-             keepieArea.addEventListener("mousedown", (e) => {
-                  if(currentGameMode === 'keepie') keepieTap();
-             });
-              keepieArea.addEventListener("touchstart", (e) => {
-                 e.preventDefault();
-                 if(currentGameMode === 'keepie') keepieTap();
-             });
-         }
-         
-         
+         document.addEventListener('click', (event) => {
+           const actionTarget = event.target.closest('[data-action]');
+           if(handleAppAction(actionTarget)) return;
+
+           const keepieStartTarget = event.target.closest('#keepieArea, #keepieBall');
+           if(keepieStartTarget && currentGameMode === 'keepie') {
+             keepieTap(event);
+           }
+         });
+
+         document.addEventListener('touchstart', (event) => {
+           const actionTarget = event.target.closest('[data-action]');
+           if(handleAppAction(actionTarget)) return;
+
+           const keepieStartTarget = event.target.closest('#keepieArea, #keepieBall');
+           if(keepieStartTarget && currentGameMode === 'keepie') {
+             event.preventDefault();
+             keepieTap(event);
+           }
+         }, { passive: false });
     });
+
+        window.showMenu = showMenu;
+        window.startGameMode = startGameMode;
+        window.resetCurrentGame = resetCurrentGame;
+        window.startQuiz = startQuiz;
+        window.startKeepieGame = startKeepieGame;
 
 

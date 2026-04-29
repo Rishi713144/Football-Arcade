@@ -2,7 +2,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Footballer Predictor</title>
+<title>Premier Legends - Football Arcade Games</title>
     
         <link rel="stylesheet" href="style.css" /> 
     
@@ -11,30 +11,42 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
     />
     <script src="Script.js" defer></script>
+    <script src="arcadeGames.js" defer></script>
   </head>
 
   <body>
-  <h1>Football Frenzy Arcade</h1>
-  
-  <div class="input-container">
-    <input
-      type="text"
-      id="userName"
-      placeholder="Enter your name"
-      onkeypress="handleEnter(event)"
-    />
-  </div>
+  <div class="page-container">
+    <div class="hero-section">
+      <h1 class="main-title"> Premier Legends</h1>
+      <p class="subtitle">Test your football knowledge with elite games & quizzes</p>
+    </div>
 
-  <div class="button-container" id="mainMenu">
-    <button onclick="startGameMode('quiz')">Identity Matcher</button>
-    <button onclick="startGameMode('penalty')">Penalty Shootout</button>
-    <button onclick="startGameMode('keepie')">Keepie Uppie Challenge</button>
+    <div class="menu-grid" id="mainMenu">
+      <div class="menu-card" data-action="start-game" data-mode="quiz">
+        <div class="card-icon">🎭</div>
+        <h3>Identity Matcher</h3>
+        <p class="card-desc">Discover which footballer matches your personality</p>
+        <button class="card-button" type="button" data-action="start-game" data-mode="quiz">Play Now</button>
+      </div>
 
-  </div>
+      <div class="menu-card" data-action="start-game" data-mode="keepie">
+        <div class="card-icon">🎪</div>
+        <h3>Keepie Uppie</h3>
+        <p class="card-desc">Keep the ball in the air as long as you can</p>
+        <button class="card-button" type="button" data-action="start-game" data-mode="keepie">Play Now</button>
+      </div>
 
-  <div class="button-container" id="gameControls" style="display:none;">
-      <button onclick="showMenu()">Back to Menu</button>
-      <button onclick="resetCurrentGame()">Restart Game</button>
+      <div class="menu-card" data-action="start-game" data-mode="planetquizzes">
+        <div class="card-icon">🎯</div>
+        <h3>Arcade Quizzes</h3>
+        <p class="card-desc">6 quiz categories & ranking games</p>
+        <button class="card-button" type="button" data-action="start-game" data-mode="planetquizzes">Play Now</button>
+      </div>
+    </div>
+
+  <div class="game-controls" id="gameControls" style="display:none;">
+      <button class="control-btn back-btn" type="button" data-action="show-menu">← Back to Menu</button>
+      <button class="control-btn restart-btn" type="button" data-action="reset-game">🔄 Restart Game</button>
   </div>
 
   <!-- QUIZ SECTION -->
@@ -67,18 +79,7 @@
       </div>
   </div>
 
-  <!-- PENALTY GAME SECTION -->
-  <div id="minigameContainer">
-    <h2>Penalty Shootout!</h2>
-    <div id="scoreBoard">Score: <span id="penaltyScore">0</span></div>
-    <div id="gameArea">
-      <div id="goal">
-        <div id="goalkeeper"></div>
-      </div>
-      <div id="ball"></div>
-    </div>
-    <p id="gameMessage">Tap or Spacebar to Shoot!</p>
-  </div>
+  <!-- Penalty game removed -->
 
   <!-- KEEPIE UPPIE SECTION -->
   <div id="keepieContainer" style="display:none;">
@@ -90,5 +91,14 @@
           <div id="keepieBall"></div>
       </div>
       <p id="keepieMessage">Click/Tap the ball to start!</p>
+        </div>
+
+  <!-- PLANET QUIZZES SECTION -->
+  <div id="planetQuizzesContainer" style="display:none;">
+    <h2>Planet Quizzes</h2>
+    <div id="quizzesContent"></div>
+  </div>
+  </div>
+  </body>
 </html>
 
