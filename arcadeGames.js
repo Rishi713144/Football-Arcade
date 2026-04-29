@@ -42,12 +42,11 @@
         title: 'Football Records',
         desc: 'Test your knowledge of football records and statistics.',
         questions: [
-          { q: 'Who is the all-time top scorer in international football?', options: ['Cristiano Ronaldo (130)', 'Ali Daei (109)', 'Lionel Messi (98)', 'Pelé (77)'], a: 0, hint: 'Portuguese forward, current holder' },
-          { q: 'How many FIFA World Cup trophies has Brazil won?', options: ['3', '5', '4', '6'], a: 2, hint: 'Won in 1958, 1962, 1970, 1994, 2002' },
-          { q: 'Which team won the most UEFA Champions League titles?', options: ['Barcelona (5)', 'AC Milan (7)', 'Real Madrid (14)', 'Bayern Munich (6)'], a: 2, hint: 'Spanish club, dominant in recent years' },
-          { q: 'Who holds the record for most goals in a single Premier League season?', options: ['Sergio Agüero (32)', 'Harry Kane (36)', 'Mohamed Salah (42)', 'Alan Shearer (34)'], a: 2, hint: 'Egyptian striker, 2017-18 season' },
-          { q: 'Which player won the most Ballon d\'Or awards in history?', options: ['Cristiano Ronaldo (5)', 'Lionel Messi (8)', 'Pelé (3)', 'Diego Maradona (2)'], a: 1, hint: 'Argentine striker, retired 2023' }
-        ]
+          { q: 'Who is the all-time top scorer in international football?', options: ['Cristiano Ronaldo', 'Ali Daei', 'Lionel Messi', 'Pelé'], a: 0, hint: 'Portuguese forward, current holder' },
+          { q: 'How many FIFA World Cup trophies has Brazil won?', options: ['3', '4', '5', '6'], a: 2, hint: 'Won in 1958, 1962, 1970, 1994, 2002' },
+          { q: 'Which team won the most UEFA Champions League titles?', options: ['Barcelona', 'AC Milan', 'Real Madrid', 'Bayern Munich'], a: 2, hint: 'Spanish club, dominant in recent years' },
+          { q: 'Who holds the record for most goals in a single Premier League season?', options: ['Sergio Agüero', 'Harry Kane', 'Mohamed Salah', 'Alan Shearer'], a: 2, hint: 'Egyptian striker, 2017-18 season' },
+          { q: 'Which player won the most Ballon dOr awards in history?', options: ['Cristiano Ronaldo', 'Lionel Messi', 'Pelé', 'Diego Maradona'], a: 1, hint: 'Argentine striker, retired 2023' }]
       },
       {
         id: 'tactics',
@@ -134,7 +133,6 @@
         <div id="qControls" style="margin-top:12px;display:flex;gap:8px"><button id="qBack" class="btn">Back</button></div>
       </div>`);
       rootContainer.appendChild(box);
-      const item = questions[idx];
 
       const qArea = box.querySelector('#qArea');
       const qControls = box.querySelector('#qControls');
@@ -189,8 +187,6 @@
         box.querySelector('#qRetry').addEventListener('click', () => runQuiz(quiz, rootContainer));
         box.querySelector('#qBack').addEventListener('click', () => window.startPlanetQuizzes());
       }
-      const shuffled = shuffleArray(ranking.items).slice(0, 3);
-
       showQuestion();
     }
 
@@ -640,7 +636,7 @@
     const rankings = [
       {
         id: 'expensive_transfers',
-        title: '🏆 Most Expensive Transfers',
+        title: ' Most Expensive Transfers',
         desc: 'Guess the items from clever hints and reveal them in their correct order.',
         items: [
           { answer: 'Kylian Mbappe', extraClue: 'The crown jewel of Paris, securely locked down after a hefty domestic blockbuster move.' },
@@ -659,7 +655,7 @@
       },
       {
         id: 'champions_scorers',
-        title: '⚽ Champions League All-Time Top Scorers',
+        title: ' Champions League All-Time Top Scorers',
         desc: 'Guess the items from clever hints and reveal them in their correct order.',
         items: [
           { answer: 'Cristiano Ronaldo', extraClue: 'Mr. Champions League himself, synonymous with clutch knockout stage goals.' },
